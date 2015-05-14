@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed May  6 13:28:36 2015
-
+plot :
+(1)temp, catch vs time . 
+(2)temp change, catch change vs time .
+(3)abs temp change, catch change vs time
 
 @author: hxu
 """
@@ -29,7 +32,7 @@ maxdtime=dt.datetime.strptime(time2,'%Y-%m-%d:%H:%M')
 input_time=[mindtime,maxdtime]
 time,sea_water_temperature,depth2,sites,lat,lon=getobs_tempsalt_bysite(site,input_time,depth)
 idx=[]
-for i in range(len(df.time_s)):
+for i in range(len(df.time_s)):   #get index of site time by catch time
     idx.append((np.abs(date2num(time)-date2num(dt.datetime.strptime(df.time_s[i],'%Y-%m-%d:%H:%M')))).argmin())
 temp,times,times_t=[],[],[]
 for q in range(len(idx)):

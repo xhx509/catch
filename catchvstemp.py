@@ -1,12 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed May  6 13:28:36 2015
-plot :
-(1)temp, catch vs time . 
-(2)temp change, catch vs time .
-(3)abs temp change, catch vs time
+Created on Mon May 11 11:12:18 2015
+
 @author: hxu
 """
+
+# -*- coding: utf-8 -*-
+"""
+Created on Wed May  6 13:28:36 2015
+plot Histogram:
+(1)temp in 4 days period vs time catch. 
+(2)temp change in 4 days period change vs catch .
+#  (3)abs temp change, catch change vs time
+
+@author: hxu
+"""
+from pandas import *
 from matplotlib.dates import date2num, num2date
 import matplotlib.pyplot as plt
 import datetime as dt
@@ -31,16 +40,44 @@ maxdtime=dt.datetime.strptime(time2,'%Y-%m-%d:%H:%M')
 input_time=[mindtime,maxdtime]
 time,sea_water_temperature,depth2,sites,lat,lon=getobs_tempsalt_bysite(site,input_time,depth)
 idx=[]
-for i in range(len(df.time_s)):    #get index of site time by catch time
+for i in range(len(df.time_s)):   #get index of site time by catch time
     idx.append((np.abs(date2num(time)-date2num(dt.datetime.strptime(df.time_s[i],'%Y-%m-%d:%H:%M')))).argmin())
 temp,times,times_t=[],[],[]
-for q in range(len(idx)):
-    times.append(time[idx[q]])
+for q in range(len(idx)-1):   
+    times.append(time[idx[q+1]])
+    temp.append(np.mean(sea_water_temperature[idx[q+1]-96:idx[q+1]]))
+list_catch=np.array(df['catch'].tolist()[1:])/8.0
+catch_a=[];temp_r=[]
+
+for i in range(1,14): #set y columns to 30 columns
+             catch_a.append(sum([list_catch[x] for x in range(len(list_catch)) if i+1>temp[x] >= i])/len([list_catch[x] for x in range(len(list_catch)) if i+1>temp[x] >= i]))
+             temp_r.append(str(i)+'-'+str(i+1))  # for setting y label
+catch_a_c=[];temp_r_c=[]
+
+for i in range(1,15):
+    catch_a_c.append(sum([list_catch[x+1] for x in range(len(list_catch)-1) if (0.2*(i+1)-1.4)>(temp[x+1]-temp[x]) >= (0.2*i-1.4)])/len([list_catch[x+1] for x in range(len(list_catch)-1) if (0.2*(i+1)-1.4)>(temp[x+1]-temp[x]) >= (0.2*i-1.4)]))
+    temp_r_c.append(str(round(0.2*i-1.4,1))+'-'+str(round(0.2*(i+1)-1.4,1)))
+'''
+for m in range(1,14):
+  for i in range(len(temp)):
+        catch_a.append(sum(x for x)               m)
+'''
+df_p=DataFrame(catch_a,index=temp_r,columns=['catches vs temp'])   #set df for plot histogram
+fig, axes = plt.subplots(nrows=1, ncols=2)
+df_p.plot(ax=axes[0],kind='bar')  
+axes[0].set_xlabel(' temp period (C)', color='b',fontsize=15)
+axes[0].set_ylabel(' average catch', color='b',fontsize=15)
+df_pc=DataFrame(catch_a_c,index=temp_r_c,columns=['catches vs temp change'])
+df_pc.plot(ax=axes[1],kind='bar',ylim=[0,1.5],colors='red') 
+axes[1].set_xlabel(' temp change period (C)', color='r',fontsize=15)
+axes[1].set_ylabel(' average catch', color='r',fontsize=15)
+plt.gcf().autofmt_xdate()
+plt.show()  
 '''
 for i in range(len(idx)-1):
     temp_c.append(sea_water_temperature[idx[i+1]]-sea_water_temperature[idx[i+1]])
     times_c.append(time[idx[i+1]])
-'''
+
 for n in range(len(time)/7):
     temp.append(np.mean(sea_water_temperature[7*n:7*n+7]))
     times_t.append(num2date(np.mean(date2num(time[7*n:7*n+7]))))
@@ -54,8 +91,9 @@ for m in range(len(idx)/4-1):
     catch4_c.append((df.catch[4*(m+1)]+df.catch[4*(m+1)+1]+df.catch[4*(m+1)+2]+df.catch[4*(m+1)+3])/32.0-(df.catch[4*m]+df.catch[4*m+1]+df.catch[4*m+2]+df.catch[4*m+3])/32.0)
     times_c.append(num2date((date2num(times[4*(m+1)])+date2num(times[4*(m+1)+1])+date2num(times[4*(m+1)+2])+date2num(times[4*(m+1)+3]))/4))
 
+
 fig, axes = plt.subplots(nrows=3, ncols=1)
-ax1=axes[0]    # plot temp,catch vs time
+ax1=axes[0]
 #fig, ax1 = plt.subplots(211)   
 ax1.set_title('Lobsters kept and Temperature at BN01',fontsize=25)
 ax1.plot(times_t,temp,'b')
@@ -64,7 +102,7 @@ ax1.set_ylabel('7 days average temp(C)', color='b',fontsize=15)
 ax1.legend()
 ax2 = ax1.twinx()
 ax2.plot(times4,catch4,'r')
-ax2.set_ylabel('4 hauls average catch', color='r',fontsize=15)
+ax2.set_ylabel('4 hauls average catch change', color='r',fontsize=15)
 ax2.legend()
 ax3=axes[1]
 ax3.plot(times_c,temp_c,'b')
@@ -72,7 +110,7 @@ ax3.plot(times_c,temp_c,'b')
 ax3.set_ylabel('temp(C) change', color='b',fontsize=15)
 ax3.legend()
 ax4 = ax3.twinx()
-ax4.plot(times_c,catch4[1:],'r')
+ax4.plot(times_c,catch4_c,'r')
 #ax4.set_ylabel('4 hauls average catch change', color='r',fontsize=15)
 ax4.legend()
 ax5=axes[2]
@@ -81,11 +119,11 @@ ax5.set_xlabel('time ',fontsize=21)
 ax5.set_ylabel('ABS temp(C) change', color='b',fontsize=15)
 ax5.legend()
 ax6 = ax5.twinx()
-ax6.plot(times_c,catch4[1:],'r')
-ax6.set_ylabel('4 hauls average catch', color='r',fontsize=15)
+ax6.plot(times_c,catch4_c,'r')
+ax6.set_ylabel('4 hauls average catch change', color='r',fontsize=15)
 ax6.legend()
 plt.gcf().autofmt_xdate() #beautify time axis
-
+'''
 
 plt.show()
 #temp=edf[:,6]
