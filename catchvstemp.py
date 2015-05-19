@@ -25,6 +25,7 @@ import netCDF4
 from getemolt_function import getobs_tempsalt_bysite
 file_e='emolt2015-05-06 15:49.csv'
 files='sqldump_2015_05_BN.csv'
+catches=''     # get only long lobster catch or both short and long lobster catch
 #f=np.genfromtxt('/data5/jmanning/fish/lobster/sqldump_test.dat')
 #f=np.genfromtxt('sqldump_test.dat')
 variables=['ser_num','num','site_n','lat','lon','time_s','nan','nan','nan','depth','num_traps','catch','egger','short','idepth','nan']
@@ -42,35 +43,51 @@ time,sea_water_temperature,depth2,sites,lat,lon=getobs_tempsalt_bysite(site,inpu
 idx=[]
 for i in range(len(df.time_s)):   #get index of site time by catch time
     idx.append((np.abs(date2num(time)-date2num(dt.datetime.strptime(df.time_s[i],'%Y-%m-%d:%H:%M')))).argmin())
-temp,times,times_t=[],[],[]
-for q in range(len(idx)-1):   
+temp,temp_std,times,times_t=[],[],[],[]
+for q in range(len(idx)-1):   # for substracting previous one
     times.append(time[idx[q+1]])
     temp.append(np.mean(sea_water_temperature[idx[q+1]-96:idx[q+1]]))
-list_catch=np.array(df['catch'].tolist()[1:])/8.0
+    temp_std.append(np.std(sea_water_temperature[idx[q+1]-96:idx[q+1]]))
+if catches=='short and long':
+    list_short=[]
+    for h in df['short'].tolist():
+        list_short.append(int(h))
+    list_catch=np.array(df['catch'].tolist()[1:])/8.0+np.array( list_short[1:])/8.0
+else:
+    list_catch=np.array(df['catch'].tolist()[1:])/8.0
 catch_a=[];temp_r=[]
 
 for i in range(1,14): #set y columns to 30 columns
              catch_a.append(sum([list_catch[x] for x in range(len(list_catch)) if i+1>temp[x] >= i])/len([list_catch[x] for x in range(len(list_catch)) if i+1>temp[x] >= i]))
              temp_r.append(str(i)+'-'+str(i+1))  # for setting y label
 catch_a_c=[];temp_r_c=[]
+for i in range(0,9):
+    #catch_a_c.append(sum([list_catch[x+1] for x in range(len(list_catch)-1) if (0.2*(i+1)-1.4)>(temp[x+1]-temp[x]) >= (0.2*i-1.4)])/len([list_catch[x+1] for x in range(len(list_catch)-1) if (0.2*(i+1)-1.4)>(temp[x+1]-temp[x]) >= (0.2*i-1.4)]))
+    temp_r_c.append(str(round(i-4.5,1))+'-'+str(round(i-3.5,1)))
+    catch_a_c.append(np.mean([list_catch[x+1] for x in range(len(list_catch)-1) if (i-3.5)>(temp[x+1]-temp[x]) >= (i-4.5)]))
+catch_std,temp_r_std=[],[]
+for i in range(0,8):
+    temp_r_std.append(str(round(0.2*i,1))+'-'+str(round(0.2*(i+1),1)))
+    catch_std.append(np.mean([list_catch[x+1] for x in range(len(list_catch)-1) if (0.2*(i+1)>(temp_std[x+1]) >= 0.2*i)]))
 
-for i in range(1,15):
-    catch_a_c.append(sum([list_catch[x+1] for x in range(len(list_catch)-1) if (0.2*(i+1)-1.4)>(temp[x+1]-temp[x]) >= (0.2*i-1.4)])/len([list_catch[x+1] for x in range(len(list_catch)-1) if (0.2*(i+1)-1.4)>(temp[x+1]-temp[x]) >= (0.2*i-1.4)]))
-    temp_r_c.append(str(round(0.2*i-1.4,1))+'-'+str(round(0.2*(i+1)-1.4,1)))
-'''
-for m in range(1,14):
-  for i in range(len(temp)):
-        catch_a.append(sum(x for x)               m)
-'''
 df_p=DataFrame(catch_a,index=temp_r,columns=['catches vs temp'])   #set df for plot histogram
-fig, axes = plt.subplots(nrows=1, ncols=2)
+fig, axes = plt.subplots(nrows=1, ncols=3)
+#plt.title('BN01 from '+mindtime.strftime("%d/%m/%y")+' to '+maxdtime.strftime("%d/%m/%y"))
 df_p.plot(ax=axes[0],kind='bar')  
+axes[1].set_title('BN01 '+catches+' from '+mindtime.strftime("%d/%m/%y")+' to '+maxdtime.strftime("%d/%m/%y"))
 axes[0].set_xlabel(' temp period (C)', color='b',fontsize=15)
 axes[0].set_ylabel(' average catch', color='b',fontsize=15)
 df_pc=DataFrame(catch_a_c,index=temp_r_c,columns=['catches vs temp change'])
-df_pc.plot(ax=axes[1],kind='bar',ylim=[0,1.5],colors='red') 
+df_pc.plot(ax=axes[1],kind='bar',colors='red') 
 axes[1].set_xlabel(' temp change period (C)', color='r',fontsize=15)
 axes[1].set_ylabel(' average catch', color='r',fontsize=15)
+df_pstd=DataFrame(catch_std,index=temp_r_std,columns=['catches vs temp std'])
+df_pstd.plot(ax=axes[2],kind='bar',colors='green')
+axes[2].set_xlabel('std temp period ', color='g',fontsize=15)
+axes[2].set_ylabel(' average catch', color='g',fontsize=15)
+
+
+#plt.title('BN01 from '+mindtime.strftime("%d/%m/%y")+' to '+maxdtime.strftime("%d/%m/%y"))
 plt.gcf().autofmt_xdate()
 plt.show()  
 '''

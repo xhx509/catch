@@ -2,8 +2,8 @@
 """
 Created on Wed May  6 13:28:36 2015
 plot :
-(1)temp, catch vs time . 
-(2)temp change, catch vs time .
+(1)instant temp, catch vs time . 
+(2)instant temp change, catch vs time .
 (3)abs temp change, catch vs time
 @author: hxu
 """
