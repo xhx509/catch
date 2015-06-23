@@ -8,10 +8,10 @@ Created on Mon May 11 11:12:18 2015
 # -*- coding: utf-8 -*-
 """
 Created on Wed May  6 13:28:36 2015
-plot Histogram:
+simple plot Histogram(no errorbar):
 (1)temp in 4 days period vs time catch. 
 (2)temp change in 4 days period change vs catch .
-#  (3)abs temp change, catch change vs time
+(3)abs temp change, catch change vs time
 
 @author: hxu
 """
@@ -56,31 +56,39 @@ if catches=='short and long':
 else:
     list_catch=np.array(df['catch'].tolist()[1:])/8.0
 catch_a=[];temp_r=[]
-
+catch_a_std=[];num_catch_a=[]
 for i in range(1,14): #set y columns to 30 columns
-             catch_a.append(sum([list_catch[x] for x in range(len(list_catch)) if i+1>temp[x] >= i])/len([list_catch[x] for x in range(len(list_catch)) if i+1>temp[x] >= i]))
+             catch_a.append(sum([list_catch[x] for x in range(len(list_catch)) if i+1>temp[x] >= i])/len([list_catch[x] for x in range(len(list_catch)) if i+1>temp[x] >= i]))             
              temp_r.append(str(i)+'-'+str(i+1))  # for setting y label
-catch_a_c=[];temp_r_c=[]
+             #catch_a_max.append(max([list_catch[x] for x in range(len(list_catch)) if i+1>temp[x] >= i]))
+             #catch_a_min.append(min([list_catch[x] for x in range(len(list_catch)) if i+1>temp[x] >= i]))
+             catch_a_std.append(np.std([list_catch[x] for x in range(len(list_catch)) if i+1>temp[x] >= i]))
+             num_catch_a.append(len([list_catch[x] for x in range(len(list_catch)) if i+1>temp[x] >= i]))
+catch_a_c=[];temp_r_c=[];catch_a_cstd=[];num_catch_a_c=[]
 for i in range(0,9):
     #catch_a_c.append(sum([list_catch[x+1] for x in range(len(list_catch)-1) if (0.2*(i+1)-1.4)>(temp[x+1]-temp[x]) >= (0.2*i-1.4)])/len([list_catch[x+1] for x in range(len(list_catch)-1) if (0.2*(i+1)-1.4)>(temp[x+1]-temp[x]) >= (0.2*i-1.4)]))
     temp_r_c.append(str(round(i-4.5,1))+'-'+str(round(i-3.5,1)))
     catch_a_c.append(np.mean([list_catch[x+1] for x in range(len(list_catch)-1) if (i-3.5)>(temp[x+1]-temp[x]) >= (i-4.5)]))
-catch_std,temp_r_std=[],[]
+    num_catch_a_c.append(len([list_catch[x+1] for x in range(len(list_catch)-1) if (i-3.5)>(temp[x+1]-temp[x]) >= (i-4.5)]))
+catch_std,temp_r_std=[],[];num_catch_std=[]
 for i in range(0,8):
     temp_r_std.append(str(round(0.2*i,1))+'-'+str(round(0.2*(i+1),1)))
     catch_std.append(np.mean([list_catch[x+1] for x in range(len(list_catch)-1) if (0.2*(i+1)>(temp_std[x+1]) >= 0.2*i)]))
-
+    num_catch_std.append(len([list_catch[x+1] for x in range(len(list_catch)-1) if (0.2*(i+1)>(temp_std[x+1]) >= 0.2*i)]))
 df_p=DataFrame(catch_a,index=temp_r,columns=['catches vs temp'])   #set df for plot histogram
 fig, axes = plt.subplots(nrows=1, ncols=3)
-#plt.title('BN01 from '+mindtime.strftime("%d/%m/%y")+' to '+maxdtime.strftime("%d/%m/%y"))
-df_p.plot(ax=axes[0],kind='bar')  
-axes[1].set_title('BN01 '+catches+' from '+mindtime.strftime("%d/%m/%y")+' to '+maxdtime.strftime("%d/%m/%y"))
-axes[0].set_xlabel(' temp period (C)', color='b',fontsize=15)
-axes[0].set_ylabel(' average catch', color='b',fontsize=15)
+plt.title('BN01 from '+mindtime.strftime("%d/%m/%y")+' to '+maxdtime.strftime("%d/%m/%y"))
+df_p.plot(ax=axes[0],kind='bar',color='red')  
+#axes[0].set_title('BN01 '+catches+' from '+mindtime.strftime("%d/%m/%y")+' to '+maxdtime.strftime("%d/%m/%y"))
+axes[0].set_xlabel(' temp period (C)', color='r',fontsize=15)
+axes[0].set_ylabel(' average catch', color='r',fontsize=15)
+axes[0].errorbar(range(0,13), catch_a, yerr=[catch_a_std,catch_a_std], fmt='o',color='black',capthick=4)
+axes[0].set_ylim([0,2.5])
+print 1
 df_pc=DataFrame(catch_a_c,index=temp_r_c,columns=['catches vs temp change'])
-df_pc.plot(ax=axes[1],kind='bar',colors='red') 
-axes[1].set_xlabel(' temp change period (C)', color='r',fontsize=15)
-axes[1].set_ylabel(' average catch', color='r',fontsize=15)
+df_pc.plot(ax=axes[1],kind='bar',colors='b') 
+axes[1].set_xlabel(' temp change period (C)', color='b',fontsize=15)
+axes[1].set_ylabel(' average catch', color='b',fontsize=15)
 df_pstd=DataFrame(catch_std,index=temp_r_std,columns=['catches vs temp std'])
 df_pstd.plot(ax=axes[2],kind='bar',colors='green')
 axes[2].set_xlabel('std temp period ', color='g',fontsize=15)
