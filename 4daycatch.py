@@ -12,8 +12,16 @@ plot :
 (1)temp, catch vs day average time . 
 (2)temp change in 4 day period , catch vs time .
 (3)abs temp change in 4 day period, catch vs time
+
+Please change input values below, and name the graph that you will save at the end of this program
 @author: hxu
 """
+#####################################
+#file_e='emolt2015-05-06 15:49.csv'
+files='sqldump_2015_12_AB.csv'
+days=4 #How many days average temp do you want
+##########################################
+
 from matplotlib.dates import date2num, num2date
 import matplotlib.pyplot as plt
 import datetime as dt
@@ -21,8 +29,8 @@ import pandas as pd
 import numpy as np
 import netCDF4
 from getemolt_function import getobs_tempsalt_bysite
-file_e='emolt2015-05-06 15:49.csv'
-files='sqldump_2015_05_BN.csv'
+
+
 #f=np.genfromtxt('/data5/jmanning/fish/lobster/sqldump_test.dat')
 #f=np.genfromtxt('sqldump_test.dat')
 variables=['ser_num','num','site_n','lat','lon','time_s','nan','nan','nan','depth','num_traps','catch','egger','short','idepth','nan']
@@ -30,7 +38,7 @@ df=pd.read_csv(files,names=variables)
 site=df.site_n[0]
 depth=[df.depth[0]+30,df.depth[0]-10] # temp depth and site depth are not same. max,min
 variables_temp=['site','la','lo','de','time_t','temp']
-edf=pd.read_csv(file_e,skiprows=1,names=variables_temp)
+#edf=pd.read_csv(file_e,skiprows=1,names=variables_temp)
 time1=df.time_s[0]
 time2=df.time_s[len(df.time_s)-1]
 mindtime=dt.datetime.strptime(time1,'%Y-%m-%d:%H:%M')
@@ -48,20 +56,20 @@ for i in range(len(idx)-1):
     temp_c.append(sea_water_temperature[idx[i+1]]-sea_water_temperature[idx[i+1]])
     times_c.append(time[idx[i+1]])
 '''
-for n in range(len(time)/24-1):
+for n in range(len(time)/24-1):  #compare current one  with previous one
     temp.append(np.mean(sea_water_temperature[24*n+2:24*n+9]))
     times_t.append(num2date(np.mean(date2num(time[24*n+2:24*n+9]))))
 temp4,times4,catch4,times_c,temp_c,catch4_c=[],[],[],[],[],[] 
 
 for m in idx[1:]:
-    temp4.append(np.mean(sea_water_temperature[m-96:m]))
+    temp4.append(np.mean(sea_water_temperature[m-days*24:m])) #
 for n in range(len(idx)-1):
-    catch4.append((df.catch[n+1])/8.0)
-    times4.append(num2date((date2num(times[n+1]))-2))
+    catch4.append((df.catch[n+1])/8.0)  #devide baskets
+    times4.append(num2date((date2num(times[n+1]))-2)) # for compare current one  with previous one
     
-for m in range(len(idx)-2):
+for m in range(len(idx)-2):  #compare current one  with previous one
     temp_c.append(np.mean(sea_water_temperature[(idx[m+2]-96):idx[m+2]])-np.mean(sea_water_temperature[(idx[m+1]-96):idx[m+1]]))
-    catch4_c.append((df.catch[m+2])/8.0-(df.catch[m+1])/8.0)
+    catch4_c.append((df.catch[m+2])/8.0-(df.catch[m+1])/8.0)#devide baskets
     times_c.append(num2date((date2num(times[m+2]))-2))
 
 '''   
@@ -80,7 +88,7 @@ ax1=axes[0]    # plot temp,catch vs time
 ax1.set_title('Lobsters kept and Temperature at BN01',fontsize=25)
 ax1.plot(times_t,temp,'b')
 #ax1.set_xlabel('time ',fontsize=21)
-ax1.set_ylabel('1 day average temp(C)', color='b',fontsize=15)
+ax1.set_ylabel( str(days)+' day average temp(C)', color='b',fontsize=15)
 ax1.legend()
 ax2 = ax1.twinx()
 ax2.plot(times4,catch4,'r')
@@ -108,6 +116,7 @@ plt.gcf().autofmt_xdate() #beautify time axis
 
 
 plt.show()
+plt.savefig('BN catch_tempvstime.png')
 #temp=edf[:,6]
 #time_e=edf[:,3]
 

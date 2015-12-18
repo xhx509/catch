@@ -69,8 +69,10 @@ example: input_time=[dt(2003,1,1,0,0,0,0,pytz.UTC),dt(2009,1,1,0,0,0,0,pytz.UTC)
     
     df=pd.read_csv(url,skiprows=[1])
     for k in range(len(df)):
-       df.time[k]=parse(df.time[k])
-
+        df.time.values[k]=parse(df.time.values[k])
+          #df.time[k]=parse(df.time[k])
+          #df.loc[k,('time')]=parse(df.loc[k,('time')])
+    #print 'finish getobs'
     return df.time.values,df.sea_water_temperature.values,df.depth.values,df.SITE.values,df.latitude.values,df.longitude.values
 
 def getobs_tempsalt_byrange(gbox,depth,input_time):

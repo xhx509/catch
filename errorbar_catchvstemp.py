@@ -19,9 +19,8 @@ Please modify input below before you run this program
 """
 
 #############################INPUT##################
-file_e='emolt2015-05-06 15:49.csv'
-files='sqldump_2015_05_BD.csv'
-catches='short egger and long'     # get only long lobster catch or both short and long lobster catch
+files='sqldump_2015_12_AB.csv'
+catches=''     # get only long lobster catch or both short and long lobster catch
 ######################################################
 import math
 from pandas import *
@@ -50,7 +49,7 @@ df=pd.read_csv(files,names=variables)
 site=df.site_n[0]
 depth=[df.depth[0]+30,df.depth[0]-10] # temp depth and site depth are not same. max,min
 variables_temp=['site','la','lo','de','time_t','temp']
-edf=pd.read_csv(file_e,skiprows=1,names=variables_temp)
+#edf=pd.read_csv(file_e,skiprows=1,names=variables_temp)
 time1=df.time_s[0]
 time2=df.time_s[len(df.time_s)-1]
 mindtime=dt.datetime.strptime(time1,'%Y-%m-%d:%H:%M')
@@ -112,10 +111,10 @@ fig, axes = plt.subplots(nrows=1, ncols=3)
 rects1 = axes[0].bar(np.arange(len(temp_r)), catch_a, color='r',)
 #axes[0].set_title('BN01 '+catches+' from '+mindtime.strftime("%d/%m/%y")+' to '+maxdtime.strftime("%d/%m/%y"))
 #axes[0].plt.hist()
-axes[0].set_xlabel(' temperature (C)', color='r',fontsize=12)
-axes[0].set_ylabel(' average catch', color='r',fontsize=15)
+axes[0].set_xlabel(' temperature (C)', color='r',fontsize=16)
+axes[0].set_ylabel(' average catch', color='r',fontsize=17)
 axes[0].errorbar(np.arange(len(temp_r))+0.5, catch_a, yerr=[catch_a_std,catch_a_std], fmt='o',color='black',capthick=4)
-axes[0].set_ylim([0,5])
+axes[0].set_ylim([0,3.5])
 axes[0].set_xlim([0,len(temp_r)])
 #plt.xticks(axes[0],np.arange(len(temp_r)), temp_r)
 
@@ -128,19 +127,20 @@ rects2 = axes[1].bar(np.arange(len(temp_r_c)), catch_a_c, color='yellow',)
 plt.setp( axes[1],xticks=np.arange(len(temp_r_c)),xticklabels=temp_r_c )
 setp( axes[1].get_yticklabels(), visible=False) #hide y a
 autolabel(rects2,axes[1],num_catch_a_c)
-axes[1].set_title(files[-6:-4]+' All Catch from '+mindtime.strftime("%Y")+' to '+maxdtime.strftime("%Y"),fontsize=25)
-axes[1].set_xlabel(' temperature change(C)', color='b',fontsize=12)
+#axes[1].set_title(files[-6:-4]+' All Catch from '+mindtime.strftime("%Y")+' to '+maxdtime.strftime("%Y"),fontsize=25)
+axes[1].set_title(files[-6:-4]+'01 CATCH VS TEMPERATURE STATISTICS',fontsize=25)
+axes[1].set_xlabel(' temperature change(C)', color='b',fontsize=16)
 #axes[1].set_ylabel(' average catch', color='yellow',fontsize=15)
 axes[1].errorbar(np.arange(len(temp_r_c))+0.5, catch_a_c, yerr=[catch_a_cstd,catch_a_cstd], fmt='o',color='black',capthick=4)
-axes[1].set_ylim([0,5])
+axes[1].set_ylim([0,3.5])
 
 df_pstd=DataFrame(catch_std,index=temp_r_std,columns=['catches vs temp std'])
 #df_pstd.plot(ax=axes[2],kind='bar',colors='green')
 rects3 = axes[2].bar(np.arange(len(temp_r_std)), catch_std, color='green',)
-axes[2].set_xlabel('temperature std_dev ', color='g',fontsize=12)
+axes[2].set_xlabel('temperature std_dev ', color='g',fontsize=16)
 #axes[2].set_ylabel(' average catch', color='g',fontsize=15)
 axes[2].errorbar(np.arange(len(temp_r_std))+0.5, catch_std, yerr=[std_catch_std,std_catch_std], fmt='o',color='black',capthick=4)
-axes[2].set_ylim([0,5])
+axes[2].set_ylim([0,3.5])
 plt.setp( axes[2],xticks=np.arange(len(temp_r_std)),xticklabels=temp_r_std )
 setp( axes[2].get_yticklabels(), visible=False) #hide y axis 
 autolabel(rects3,axes[2],num_catch_std)
