@@ -18,7 +18,7 @@ Please change input values below, and name the graph that you will save at the e
 """
 #####################################
 #file_e='emolt2015-05-06 15:49.csv'
-files='sqldump_2015_12_AB.csv'
+files='sqldump_2016_01_BN.csv'
 days=4 #How many days average temp do you want
 ##########################################
 
@@ -59,16 +59,18 @@ for i in range(len(idx)-1):
 for n in range(len(time)/24-1):  #compare current one  with previous one
     temp.append(np.mean(sea_water_temperature[24*n+2:24*n+9]))
     times_t.append(num2date(np.mean(date2num(time[24*n+2:24*n+9]))))
-temp4,times4,catch4,times_c,temp_c,catch4_c=[],[],[],[],[],[] 
+temp4,times4,catch4,times_c,temp_c,catch4_c,std_temp4,std_times=[],[],[],[],[],[],[],[] 
 
 for m in idx[1:]:
     temp4.append(np.mean(sea_water_temperature[m-days*24:m])) #
+    std_temp4.append(np.std(sea_water_temperature[m-days*24:m]))
+    std_times.append(time[m])
 for n in range(len(idx)-1):
     catch4.append((df.catch[n+1])/8.0)  #devide baskets
-    times4.append(num2date((date2num(times[n+1]))-2)) # for compare current one  with previous one
+    times4.append(num2date((date2num(times[n+1]))-2)) # for comparing current one  with previous one
     
 for m in range(len(idx)-2):  #compare current one  with previous one
-    temp_c.append(np.mean(sea_water_temperature[(idx[m+2]-96):idx[m+2]])-np.mean(sea_water_temperature[(idx[m+1]-96):idx[m+1]]))
+    temp_c.append(np.mean(sea_water_temperature[(idx[m+2]-days*24):idx[m+2]])-np.mean(sea_water_temperature[(idx[m+1]-days*24):idx[m+1]]))
     catch4_c.append((df.catch[m+2])/8.0-(df.catch[m+1])/8.0)#devide baskets
     times_c.append(num2date((date2num(times[m+2]))-2))
 
@@ -82,22 +84,22 @@ for m in range(len(idx)/4-1):
     catch4_c.append((df.catch[4*(m+1)]+df.catch[4*(m+1)+1]+df.catch[4*(m+1)+2]+df.catch[4*(m+1)+3])/32.0-(df.catch[4*m]+df.catch[4*m+1]+df.catch[4*m+2]+df.catch[4*m+3])/32.0)
     times_c.append(num2date((date2num(times[4*(m+1)])+date2num(times[4*(m+1)+1])+date2num(times[4*(m+1)+2])+date2num(times[4*(m+1)+3]))/4))
 '''
-fig, axes = plt.subplots(nrows=3, ncols=1)
+fig, axes = plt.subplots(nrows=4, ncols=1)
 ax1=axes[0]    # plot temp,catch vs time
 #fig, ax1 = plt.subplots(211)   
-ax1.set_title('Lobsters kept and Temperature at BN01',fontsize=25)
+ax1.set_title('Lobsters kept and Temperature at '+files[-6:-4]+'01',fontsize=25)
 ax1.plot(times_t,temp,'b')
 #ax1.set_xlabel('time ',fontsize=21)
-ax1.set_ylabel( str(days)+' day average temp(C)', color='b',fontsize=15)
+ax1.set_ylabel( str(days)+' day average temp(C)', color='b',fontsize=12)
 ax1.legend()
 ax2 = ax1.twinx()
 ax2.plot(times4,catch4,'r')
-ax2.set_ylabel('1 haul  catch', color='r',fontsize=15)
+ax2.set_ylabel('1 haul  catch', color='r',fontsize=12)
 ax2.legend()
 ax3=axes[1]
 ax3.plot(times_c,temp_c,'b')
 #ax3.set_xlabel('time ',fontsize=21)
-ax3.set_ylabel('temp(C) change', color='b',fontsize=15)
+ax3.set_ylabel('temp(C) change', color='b',fontsize=12)
 ax3.legend()
 ax4 = ax3.twinx()
 ax4.plot(times_c,catch4[1:],'r')
@@ -106,17 +108,27 @@ ax4.legend()
 ax5=axes[2]
 ax5.plot(times_c,np.abs(temp_c),'b')
 ax5.set_xlabel('time ',fontsize=21)
-ax5.set_ylabel('ABS temp(C) change', color='b',fontsize=15)
+ax5.set_ylabel('ABS temp(C) change', color='b',fontsize=12)
 ax5.legend()
 ax6 = ax5.twinx()
 ax6.plot(times_c,catch4[1:],'r')
-ax6.set_ylabel('1 haul catch', color='r',fontsize=15)
+ax6.set_ylabel('1 haul catch', color='r',fontsize=12)
 ax6.legend()
+ax7=axes[3]
+ax7.plot(std_times,std_temp4,'b')
+ax7.set_ylabel( str(days)+'days std temp(C)', color='b',fontsize=12)
+ax7.legend()
+ax8 = ax7.twinx()
+ax8.plot(times4,catch4,'r')
+ax8.set_ylabel('1 haul  catch', color='r',fontsize=12)
+ax8.legend()
+
+
 plt.gcf().autofmt_xdate() #beautify time axis
 
 
 plt.show()
-plt.savefig('BN catch_tempvstime.png')
+plt.savefig(files[-6:-4]+'_catch_tempvstime.png')
 #temp=edf[:,6]
 #time_e=edf[:,3]
 
