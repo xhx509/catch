@@ -19,7 +19,8 @@ Please modify input below before you run this program
 """
 
 #############################INPUT##################
-files='sqldump_2015_12_AB.csv'
+days=4
+files='sqldump_2016_01_BN.csv'
 catches=''     # get only long lobster catch or both short and long lobster catch
 ######################################################
 import math
@@ -63,8 +64,8 @@ temp,temp_std,times,times_t=[],[],[],[]
 for q in range(len(idx)-1):   # for substracting previous one
     times.append(time[idx[q+1]])
     if idx[q+1]-idx[q]>96:          # if the period between the haul and previous one is more than 96 hours, set the period to 96 hours
-        temp.append(np.mean(sea_water_temperature[idx[q+1]-96:idx[q+1]]))
-        temp_std.append(np.std(sea_water_temperature[idx[q+1]-96:idx[q+1]]))
+        temp.append(np.mean(sea_water_temperature[idx[q+1]-24*days:idx[q+1]]))
+        temp_std.append(np.std(sea_water_temperature[idx[q+1]-24*days:idx[q+1]]))
     else:
         temp.append(np.mean(sea_water_temperature[idx[q]:idx[q+1]]))
         temp_std.append(np.std(sea_water_temperature[idx[q]:idx[q+1]]))
@@ -106,6 +107,7 @@ for i in range(0,8): #get std_dev
     num_catch_std.append(len([list_catch[x+1] for x in range(len(list_catch)-1) if (0.2*(i+1)>(temp_std[x+1]) >= 0.2*i)]))
 df_p=DataFrame(catch_a,index=temp_r,columns=['catches vs temp'])   #set df for plot histogram
 fig, axes = plt.subplots(nrows=1, ncols=3)
+#axes.set_ylim([0,2.5])
 #plt.title('BN01 from '+mindtime.strftime("%d/%m/%y")+' to '+maxdtime.strftime("%d/%m/%y"))
 #df_p.plot(ax=axes[0],kind='bar',color='red')  
 rects1 = axes[0].bar(np.arange(len(temp_r)), catch_a, color='r',)
@@ -114,7 +116,7 @@ rects1 = axes[0].bar(np.arange(len(temp_r)), catch_a, color='r',)
 axes[0].set_xlabel(' temperature (C)', color='r',fontsize=16)
 axes[0].set_ylabel(' average catch', color='r',fontsize=17)
 axes[0].errorbar(np.arange(len(temp_r))+0.5, catch_a, yerr=[catch_a_std,catch_a_std], fmt='o',color='black',capthick=4)
-axes[0].set_ylim([0,3.5])
+axes[0].set_ylim([0,2.5])
 axes[0].set_xlim([0,len(temp_r)])
 #plt.xticks(axes[0],np.arange(len(temp_r)), temp_r)
 
@@ -128,11 +130,11 @@ plt.setp( axes[1],xticks=np.arange(len(temp_r_c)),xticklabels=temp_r_c )
 setp( axes[1].get_yticklabels(), visible=False) #hide y a
 autolabel(rects2,axes[1],num_catch_a_c)
 #axes[1].set_title(files[-6:-4]+' All Catch from '+mindtime.strftime("%Y")+' to '+maxdtime.strftime("%Y"),fontsize=25)
-axes[1].set_title(files[-6:-4]+'01 CATCH VS TEMPERATURE STATISTICS',fontsize=25)
+axes[1].set_title(files[-6:-4]+'01 CATCH VS '+4days+' TEMPERATURE STATISTICS',fontsize=25)
 axes[1].set_xlabel(' temperature change(C)', color='b',fontsize=16)
 #axes[1].set_ylabel(' average catch', color='yellow',fontsize=15)
 axes[1].errorbar(np.arange(len(temp_r_c))+0.5, catch_a_c, yerr=[catch_a_cstd,catch_a_cstd], fmt='o',color='black',capthick=4)
-axes[1].set_ylim([0,3.5])
+axes[1].set_ylim([0,2.5])
 
 df_pstd=DataFrame(catch_std,index=temp_r_std,columns=['catches vs temp std'])
 #df_pstd.plot(ax=axes[2],kind='bar',colors='green')
@@ -140,11 +142,13 @@ rects3 = axes[2].bar(np.arange(len(temp_r_std)), catch_std, color='green',)
 axes[2].set_xlabel('temperature std_dev ', color='g',fontsize=16)
 #axes[2].set_ylabel(' average catch', color='g',fontsize=15)
 axes[2].errorbar(np.arange(len(temp_r_std))+0.5, catch_std, yerr=[std_catch_std,std_catch_std], fmt='o',color='black',capthick=4)
-axes[2].set_ylim([0,3.5])
+axes[2].set_ylim([0,2.5])
 plt.setp( axes[2],xticks=np.arange(len(temp_r_std)),xticklabels=temp_r_std )
 setp( axes[2].get_yticklabels(), visible=False) #hide y axis 
 autolabel(rects3,axes[2],num_catch_std)
 #plt.title('BN01 from '+mindtime.strftime("%d/%m/%y")+' to '+maxdtime.strftime("%d/%m/%y"))
 plt.gcf().autofmt_xdate()
+
+plt.get_current_fig_manager().window.showMaximized()
 plt.show() 
-plt.savefig(files[-6:-4]+'_catch_vs_temp.png') 
+plt.savefig(files[-6:-4]+'_catch_vs_temp.png',dpi=360) 
